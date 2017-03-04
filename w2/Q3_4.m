@@ -16,16 +16,17 @@ clearvars; close all; clc
 
 % processing the raw data
 % Treasurey | Corp Bonds | US stock | Commodies | 1-month T bill
-raw_data = xlsread('totalReturns_L.xlsx');
+raw_data  = xlsread('totalReturns.xlsx');
 price_mat = raw_data(:, 1:4);
 
 % calculate return from price data
-R = diff(price_mat)./price_mat(1:end-1, :);
-rf = raw_data(2:end, 5); % the risk free rate
+R  = diff(price_mat)./price_mat(1:end-1, :);
+rf = raw_data(1:end, 5); % the risk free rate
 
 % def parameters of sliding  
 % 10 years window size
 win_size = 120;
+
 % As the data is monthly return and the portfolio will be hold for one
 % month, then the step will be one. Hence,  (size(R, 1) - win_size) steps
 steps = length(R) - win_size;
@@ -35,7 +36,6 @@ weight_TAN = zeros(steps, 4);
 weight_GMV = zeros(steps, 4);
 weight_RP  = zeros(steps, 4);
 weight_EW  = 0.25 .* ones(steps, 4); 
-
 port_R     = zeros(steps, 4);
 
 rolling_matrix = zeros(win_size, 4);
@@ -43,16 +43,16 @@ rolling_matrix = zeros(win_size, 4);
 % def getters
 getSigma = @(return_matrix) cov(return_matrix);
 getMu    = @(return_matrix) mean(return_matrix)'; % avg over vertical axis
-getA     = @(Sigma) ones(1, 4) * (Sigma \ ones(4, 1));
+getA     = @(Sigma) ones(1, 4) * inv(Sigma) * ones(4, 1);
 getB     = @(Sigma, Mu) ones(1, 4) * inv(Sigma) * Mu; % Note the input Mu 
                                                       % is a already 
                                                       % column vector.
 getC     = @(Sigma, Mu) Mu' * inv(Sigma) * Mu;
 getDelta = @(A, B, C) A*C - B^2;
-                     
+                       
 for i = 1:steps
     
-    rolling_matrix = R(i:i+(win_size-1), :);
+    rolling_matrix = R(i:i+win_size-1, :);
     
     mu    = getMu(rolling_matrix);
     sigma = getSigma(rolling_matrix);
@@ -60,9 +60,10 @@ for i = 1:steps
     B     = getB(sigma, mu);
     C     = getC(sigma, mu);
     Delta = getDelta(A, B, C);
+    rf_   = rf(i+win_size+1);
     
-    weight_TAN(i, :) = (inv(sigma) * (mu - rf(i+win_size)/12 * ones(4, 1))) /...
-                                                    (B - A * rf(i+win_size)/12);
+    weight_TAN(i, :) = (inv(sigma) * (mu - rf_/12 * ones(4, 1))) /...
+                                                    (B - A * rf_/12);
 
     weight_GMV(i, :) = inv(sigma) * ones(4, 1) ./ ...
                                     (ones(1, 4) * inv(sigma) * ones(4, 1));
@@ -70,11 +71,11 @@ for i = 1:steps
     stddev = std(rolling_matrix);
     weight_RP(i, :) = (1./stddev)/sum(1./stddev);
     
-    port_R(i, 1) = weight_TAN(i, :) * R(i+(win_size-1), :)';
-    port_R(i, 2) = weight_GMV(i, :) * R(i+(win_size-1), :)';
+    port_R(i, 1) = weight_TAN(i, :) * R(i+(win_size), :)';
+    port_R(i, 2) = weight_GMV(i, :) * R(i+(win_size), :)';
     
-    port_R(i, 3) = weight_RP(i, :) * R(i+(win_size-1), :)';
-    port_R(i, 4) = weight_EW(1, :) * R(i+(win_size-1), :)';
+    port_R(i, 3) = weight_RP(i, :) * R(i+(win_size), :)';
+    port_R(i, 4) = weight_EW(1, :) * R(i+(win_size), :)';
  
 end
 
@@ -116,9 +117,9 @@ port_std = std(port_R);
 rf_mean = mean(rf(win_size+1:end) / 12);
 sharp_ratio = (port_mean - rf_mean) ./ port_std .* sqrt(12);
 
-% c) explanation, skipped
+% c) explanation
 
-% d)Plot the minimum-variance frontier, given the mean of portfolio, we can
+% d) Plot the minimum-variance frontier, given the mean of portfolio, we can
 % calculate the variance using the mean-variance relation (Au^2-2Bmu+C)/Dt
 close all;
 d_price_mat  = raw_data(win_size+1:end, 1:4);

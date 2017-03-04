@@ -112,16 +112,15 @@ title('EW', 'interpreter', 'latex')
 set(gca, 'fontsize', 15)
 
 % b) compute mean and std of portfolio returns port_R, and sharp ratio
-port_mean = mean(port_R);
-port_std = std(port_R);
+port_mean = mean(port_R)
+port_std = std(port_R)
 rf_mean = mean(rf(win_size+1:end) / 12);
-sharp_ratio = (port_mean - rf_mean) ./ port_std .* sqrt(12);
+sharp_ratio = (port_mean - rf_mean) ./ port_std .* sqrt(12)
 
 % c) explanation
 
 % d) Plot the minimum-variance frontier, given the mean of portfolio, we can
 % calculate the variance using the mean-variance relation (Au^2-2Bmu+C)/Dt
-close all;
 d_price_mat  = raw_data(win_size+1:end, 1:4);
 d_return_mat = diff(d_price_mat)./d_price_mat(1:end-1, :);
 
@@ -134,13 +133,14 @@ d_Delta = getDelta(d_A, d_B, d_C);
 
 mu_axis  = 0.001:0.00001:0.012;
 var_axis = sqrt((d_A * mu_axis.^2 - 2 * d_B * mu_axis + d_C)./d_Delta);
+figure(5)
 plot(var_axis, mu_axis); grid on; hold on;
 set(gca, 'fontsize', 15)
 xlabel('Standard Deviation $\sigma$', 'interpreter', 'latex')
 ylabel('Expected Return $\mu$', 'interpreter', 'latex')
 
-tan_mean = 0.0068; gmv_mean = 0.0055; rp_mean = 0.0061; ew_mean = 0.0060;
-tan_std  = 0.0155; gmv_std  = 0.0118; rp_std  = 0.0136; ew_std  = 0.0213;
+tan_mean = 0.0052; gmv_mean = 0.0055; rp_mean = 0.0061; ew_mean = 0.0060;
+tan_std  = 0.0176; gmv_std  = 0.0125; rp_std  = 0.0137; ew_std  = 0.0213;
 
 plot(tan_std, tan_mean,'*', 'markersize', 5)
 plot(gmv_std, gmv_mean,'^', 'markersize', 5)
@@ -159,7 +159,7 @@ for i=1:steps
         perform(i, 5)   = perform(i-1, 5) .* (1 + rf(i+120)/12);
     end
 end
-figure(5)
+figure(6)
 plot(1:steps, perform, 'linewidth', 1.5)
 xlabel('monthly index', 'interpreter', 'latex')
 ylabel('Value(\$)')

@@ -29,10 +29,15 @@ returns_2 = returns(0.5*size(returns, 1)+1:end, :);
 corr_mat_2 = corr(returns_2);
 avg_corr_2 = (sum(sum(corr_mat_2)) - sum(diag(corr_mat_2)))/2/66;
 
+close all
+
 % q3
 name_cell = {'crude oil', 'copper', 'live cattle', 'cotton', 'soybean', 'live hogs', 'suger' , 'gold', 'silver', 'coffee', 'wheat', 'corn'};
 exce_return = mean(returns(0.5*size(returns, 1)+1:end, :));
 roll_return = mean((-raw_data(0.5*size(raw_data, 1)+1:end, 2:2:24) + raw_data(0.5*size(raw_data, 1)+1:end, 1:2:23))./raw_data(0.5*size(raw_data, 1)+1:end, 2:2:24));
+% exce_return = mean(returns);
+% roll_return = mean((-raw_data(:, 2:2:24) + raw_data(:, 1:2:23))./raw_data(:, 2:2:24));
+
 spot_return = exce_return - roll_return;
 figure
 for i=1:length(roll_return)
@@ -49,7 +54,7 @@ xlabel('annulized roll return')
 ylabel('annulized excess return')
 set(gca, 'fontsize', 15)
 
-% q4
+% % q4
 full_roll_returns = (-raw_data(:, 2:2:24) + raw_data(:, 1:2:23))./raw_data(:, 2:2:24);
 cumed_return = zeros(size(returns, 1), 1);
 temp_returns = full_roll_returns';
@@ -63,10 +68,12 @@ for i = 1:length(cumed_return)-1
 end
 figure
 plot(cumprod(cumed_return+1), 'r-')
+% close all
+12 * mean(cumed_return)
+std(cumed_return) * sqrt(12)
+12 * mean(cumed_return)/(std(cumed_return) * sqrt(12))
 
-12 * (geomean(cumed_return+1)-1)
-std(cumed_return)
-SR = 12 * (geomean(cumed_return+1)-1)/std(cumed_return)
+
 
 % q5
 temp_returns = returns + 1;
@@ -88,3 +95,7 @@ end
 cum_mat = cumprod(momen_return + 1);
 figure
 plot(cum_mat, 'r-')
+
+12 * mean(momen_return)
+std(momen_return) * sqrt(12)
+12 * mean(momen_return)/(std(momen_return) * sqrt(12))
